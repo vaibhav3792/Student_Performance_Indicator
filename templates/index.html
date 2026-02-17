@@ -1,1 +1,505 @@
-<h1> Welcome to the Home Page</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0e0e0e;
+            --chalk: #f0ebe0;
+            --accent: #e8c547;
+            --muted: rgba(240, 235, 224, 0.35);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--chalk);
+            cursor: none;
+        }
+
+        /* Custom cursor */
+        .cursor {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s ease, height 0.2s ease;
+            mix-blend-mode: difference;
+        }
+        .cursor-ring {
+            position: fixed;
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(232, 197, 71, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Noise texture */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100vh;
+        }
+
+        /* ─── LEFT ─── */
+        .left {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 48px;
+            border-right: 1px solid rgba(240, 235, 224, 0.08);
+            overflow: hidden;
+        }
+
+        /* Notebook lines */
+        .left::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                transparent, transparent 39px,
+                rgba(240, 235, 224, 0.04) 39px,
+                rgba(240, 235, 224, 0.04) 40px
+            );
+            pointer-events: none;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 0.1em;
+        }
+        .logo span { color: var(--accent); }
+
+        .nav-link {
+            font-size: 0.72rem;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: var(--chalk); }
+
+        /* Giant score */
+        .score-display {
+            position: relative;
+            z-index: 2;
+        }
+
+        .score-label {
+            font-family: 'Caveat', cursive;
+            font-size: 1.35rem;
+            color: var(--accent);
+            display: block;
+            margin-bottom: -10px;
+            opacity: 0;
+            animation: fadeIn 0.5s 0.3s ease forwards;
+        }
+
+        .score-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(7rem, 15vw, 12rem);
+            line-height: 0.88;
+            letter-spacing: -0.02em;
+            opacity: 0;
+            animation: fadeIn 0.5s 0.1s ease forwards;
+        }
+
+        .score-unit {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 300;
+            color: var(--muted);
+            vertical-align: top;
+            margin-top: 1.1rem;
+            display: inline-block;
+        }
+
+        .accuracy-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+            opacity: 0;
+            animation: fadeIn 0.5s 0.55s ease forwards;
+        }
+
+        .pill {
+            background: rgba(232, 197, 71, 0.1);
+            border: 1px solid rgba(232, 197, 71, 0.28);
+            color: var(--accent);
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 4px 11px;
+            border-radius: 2px;
+        }
+
+        .acc-text {
+            font-size: 0.76rem;
+            color: var(--muted);
+        }
+
+        /* Footer tags */
+        .left-footer {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 2;
+            opacity: 0;
+            animation: fadeIn 0.5s 0.75s ease forwards;
+        }
+
+        .tag {
+            font-size: 0.66rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            border: 1px solid rgba(240, 235, 224, 0.1);
+            padding: 4px 10px;
+            border-radius: 2px;
+        }
+
+        /* Vertical label */
+        .vert {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            font-size: 0.58rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(240, 235, 224, 0.1);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* ─── RIGHT ─── */
+        .right {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 56px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Big circle deco */
+        .deco-circle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .deco-circle.c1 {
+            width: 500px; height: 500px;
+            top: -160px; right: -160px;
+            border: 55px solid rgba(232, 197, 71, 0.04);
+        }
+        .deco-circle.c2 {
+            width: 340px; height: 340px;
+            bottom: -110px; left: -110px;
+            border: 40px solid rgba(232, 84, 71, 0.04);
+        }
+
+        .right-inner { position: relative; z-index: 2; }
+
+        .eyebrow {
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 26px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            opacity: 0;
+            animation: fadeIn 0.5s 0.2s ease forwards;
+        }
+        .eyebrow::before {
+            content: '';
+            width: 30px; height: 1px;
+            background: var(--muted);
+            display: block;
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 5.2vw, 4.8rem);
+            line-height: 0.94;
+            letter-spacing: 0.02em;
+            margin-bottom: 28px;
+            opacity: 0;
+            animation: slideUp 0.7s 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        h1 .hi { color: var(--accent); display: block; }
+        h1 .lo { color: rgba(240, 235, 224, 0.28); display: block; font-size: 70%; }
+
+        .desc {
+            font-size: 0.88rem;
+            font-weight: 300;
+            line-height: 1.85;
+            color: rgba(240, 235, 224, 0.48);
+            max-width: 360px;
+            margin-bottom: 48px;
+            opacity: 0;
+            animation: fadeIn 0.6s 0.5s ease forwards;
+        }
+
+        .cta-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            animation: fadeIn 0.6s 0.65s ease forwards;
+        }
+
+        .btn-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--accent);
+            color: #0e0e0e;
+            text-decoration: none;
+            padding: 18px 24px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.35rem;
+            letter-spacing: 0.08em;
+            border-radius: 3px;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-main::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 20px 50px rgba(232, 197, 71, 0.28); }
+        .btn-main:hover::after { opacity: 0.08; }
+        .btn-arrow { font-size: 1.6rem; transition: transform 0.25s ease; }
+        .btn-main:hover .btn-arrow { transform: translateX(5px); }
+
+        .btn-ghost {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            text-decoration: none;
+            padding: 13px 0;
+            font-size: 0.76rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(240, 235, 224, 0.07);
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .btn-ghost:hover { color: var(--chalk); border-color: rgba(240, 235, 224, 0.25); }
+        .btn-ghost svg { transition: transform 0.2s; }
+        .btn-ghost:hover svg { transform: translateX(3px); }
+
+        /* Live indicator */
+        .live-badge {
+            position: absolute;
+            bottom: 36px;
+            right: 48px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            opacity: 0;
+            animation: fadeIn 1s 1s ease forwards;
+        }
+        .live-dot {
+            width: 6px; height: 6px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: livePulse 2s infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74,222,128,0.4); }
+            50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(74,222,128,0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(36px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            html, body { overflow: auto; }
+            .layout { grid-template-columns: 1fr; height: auto; }
+            .left { padding: 32px 28px; border-right: none; border-bottom: 1px solid rgba(240,235,224,0.08); }
+            .right { padding: 40px 28px; }
+            .score-number { font-size: 24vw; }
+            .vert, .live-badge { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
+    <div class="layout">
+
+        <!-- LEFT -->
+        <div class="left">
+            <div class="vert">Student Performance Indicator · Machine Learning · 2024</div>
+
+            <nav class="nav">
+                <div class="logo">ML<span>.</span>Predictor</div>
+                <a href="https://github.com/vaibhav3792/Student_Performance_Indicator" target="_blank" class="nav-link">GitHub ↗</a>
+            </nav>
+
+            <div class="score-display">
+                <span class="score-label">predicted math score</span>
+                <div class="score-number">
+                    <span id="counter">00</span><span class="score-unit">/100</span>
+                </div>
+                <div class="accuracy-row">
+                    <span class="pill">88% Accuracy</span>
+                    <span class="acc-text">R² = 0.88 on test set</span>
+                </div>
+            </div>
+
+            <div class="left-footer">
+                <span class="tag">Linear Regression</span>
+                <span class="tag">1,000 Students</span>
+                <span class="tag">6 Features</span>
+                <span class="tag">Scikit-learn</span>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right">
+            <div class="deco-circle c1"></div>
+            <div class="deco-circle c2"></div>
+
+            <div class="right-inner">
+                <div class="eyebrow">End-to-end ML pipeline</div>
+
+                <h1>
+                    Know your
+                    <span class="hi">score before</span>
+                    <span class="lo">you sit the exam</span>
+                </h1>
+
+                <p class="desc">
+                    Enter a student's background, lunch plan, prep course status, 
+                    and existing scores — get an instant math score prediction 
+                    powered by machine learning.
+                </p>
+
+                <div class="cta-group">
+                    <a href="/predictdata" class="btn-main">
+                        Predict My Score
+                        <span class="btn-arrow">→</span>
+                    </a>
+                    <a href="https://github.com/vaibhav3792/Student_Performance_Indicator" target="_blank" class="btn-ghost">
+                        View source code
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="live-badge">
+                <div class="live-dot"></div>
+                Model live · Flask API
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Custom cursor
+        const cursor = document.getElementById('cursor');
+        const ring = document.getElementById('cursorRing');
+        let mx = 0, my = 0, rx = 0, ry = 0;
+
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX; my = e.clientY;
+            cursor.style.left = mx + 'px';
+            cursor.style.top = my + 'px';
+        });
+
+        (function animRing() {
+            rx += (mx - rx) * 0.11;
+            ry += (my - ry) * 0.11;
+            ring.style.left = rx + 'px';
+            ring.style.top = ry + 'px';
+            requestAnimationFrame(animRing);
+        })();
+
+        document.querySelectorAll('a').forEach(el => {
+            el.addEventListener('mouseenter', () => { cursor.style.width = '20px'; cursor.style.height = '20px'; });
+            el.addEventListener('mouseleave', () => { cursor.style.width = '12px'; cursor.style.height = '12px'; });
+        });
+
+        // Score counter animation
+        const counterEl = document.getElementById('counter');
+        const target = 87;
+        const duration = 1800;
+        let startTime = null;
+
+        function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+        function tick(ts) {
+            if (!startTime) startTime = ts;
+            const p = Math.min((ts - startTime) / duration, 1);
+            counterEl.textContent = String(Math.floor(easeOut(p) * target)).padStart(2, '0');
+            if (p < 1) requestAnimationFrame(tick);
+        }
+
+        setTimeout(() => requestAnimationFrame(tick), 500);
+    </script>
+
+</body>
+</html>
