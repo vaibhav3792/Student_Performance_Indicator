@@ -23,6 +23,7 @@
             background: var(--ink);
             color: var(--cream);
             min-height: 100vh;
+            cursor: none;
         }
 
         /* Background texture */
@@ -371,6 +372,30 @@
 
         .tip-box .tip-icon { color: var(--gold); flex-shrink: 0; margin-top: 1px; }
 
+        /* Custom cursor */
+        .cursor {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background: var(--gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s ease, height 0.2s ease;
+            mix-blend-mode: difference;
+        }
+        .cursor-ring {
+            position: fixed;
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(200, 169, 110, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+        }
+
         @media (max-width: 640px) {
             nav { padding: 0 20px; }
             .form-card { padding: 32px 24px; }
@@ -381,6 +406,9 @@
     </style>
 </head>
 <body>
+
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
 
     <nav>
         <a href="/" class="nav-brand">ML<span>Predictor</span></a>
@@ -525,6 +553,30 @@
             </form>
         </div>
     </div>
+    <script>
+        const cursor = document.getElementById('cursor');
+        const ring = document.getElementById('cursorRing');
+        let mx = 0, my = 0, rx = 0, ry = 0;
+
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX; my = e.clientY;
+            cursor.style.left = mx + 'px';
+            cursor.style.top = my + 'px';
+        });
+
+        (function animRing() {
+            rx += (mx - rx) * 0.11;
+            ry += (my - ry) * 0.11;
+            ring.style.left = rx + 'px';
+            ring.style.top = ry + 'px';
+            requestAnimationFrame(animRing);
+        })();
+
+        document.querySelectorAll('a, button, select, input').forEach(el => {
+            el.addEventListener('mouseenter', () => { cursor.style.width = '20px'; cursor.style.height = '20px'; });
+            el.addEventListener('mouseleave', () => { cursor.style.width = '12px'; cursor.style.height = '12px'; });
+        });
+    </script>
 
 </body>
 </html>

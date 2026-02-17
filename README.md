@@ -13,10 +13,16 @@ This project trains and serves a regression model that predicts student math sco
 The model was selected after benchmarking 8 different algorithms — **Linear Regression** achieved the best performance on the test set with an **R² of 0.88**.
 
 ---
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
+
+---
 
 ## Demo
 
-> Live at: ``
+> Live at: `https://student-performance-indicator-f3m1.onrender.com/`
 
 ---
 
