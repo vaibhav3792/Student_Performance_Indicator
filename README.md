@@ -22,7 +22,7 @@ The model was selected after benchmarking 8 different algorithms — **Linear Re
 
 ## Demo
 
-> Live at: `https://student-performance-indicator-f3m1.onrender.com/`
+> [Live Demo](https://student-performance-indicator-f3m1.onrender.com/)
 
 ---
 
